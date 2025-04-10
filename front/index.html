@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="author" content="Cristal" />
+
+  <title>Página de Medicamentos</title>
+  <link href="css/styles.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/produtos.css">
+</head>
+
+<body>
+  <header class="cabecalho">
+    <h1 class="titulo">CADASTRO DE MEDICAMENTOS</h1>
+  </header>
+
+  <div class="m-2">
+    <div class="row">
+      <div class="row-l">
+        <label for="">Código</label>
+        <input type="number" class="form-control" id="inpIdMed" name="descricao" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row-l">
+        <label for="">Nome</label>
+        <input type="text" class="form-control" id="inpDescricaoMed" name="descricao" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row-l">
+        <label for="">Nome Comercial</label>
+        <input type="text" class="form-control" id="inpValorMed" name="descricao" required>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="row-l">
+        <label for="">Dose</label>
+        <input type="number" class="form-control" id="inpDoseMed" name="valor" required>
+      </div>
+    </div>
+
+    <!--  será?
+    <ul id="ulErros" style="color: red;">
+    </ul>
+    -->
+
+    <div class="m-2">
+      <button type="button" class="btn" id="btnMedicamentoConferir">Conferir dados</button>
+      <button type="button" class="btn" id="btnMedicamentoIncluir">Incluir</button>
+      <button type="button" class="btn" id="btnMedicamentoAlterar">Alterar</button>
+      <button type="button" class="btn" id="btnMedicamentoExcluir">Excluir</button>
+
+    </div>
+
+    <section class="m-2">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Nome</th>
+            <th scope="col">Nome comercial</th>
+            <th scope="col">Dose</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        </tbody>
+    </section>
+
+</body>
+
+
+<script src="js/scripts.js"></script>
+
+</html>
