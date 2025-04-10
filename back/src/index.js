@@ -1,107 +1,77 @@
 import express from "express";
 import cors from "cors";
-import { executeQuery /*, dbOptions*/ } from "./config/database.js";
+import { executeQuery } from "./config/database.js";
+
 const app = express();
-
-
+app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 
-app.use(cors());
-
-//requisições
-
-app.get("/", function (req, res) {
-  res.send("OK");
+// Testando a rota para saber si la ruta está funcionando
+app.get("/", (req, res) => {
+  res.send("API de medicamentos no ar!");
 });
 
-app.get("/medicamentos/:id", function (req, res) {
-  console.log("Pesquisando pelo id: " + req.params.id);
-  executeQuery(
-    "SELECT * FROM MEDICAMENTOS WHERE ID=?",
-    [req.params.id],
-    (err, result) => {
-      if (err) res.json(err);
-      res.json(result);
-    }
-  );
+// Com la ejecución del select va retornar los registros que estaan en el banco de datos
+app.get("/medicamentos", (req, res) => {
+  const sql = "SELECT * FROM MEDICAMENTOS ORDER BY ID";
+  executeQuery(sql, [], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.status(200).json(result);
+  });
 });
 
-app.get("/medicamentos", function (req, res) {
-  console.log("Listando Medicamentos");
-
-  
-
-  let filtro = [];
-  let sql = "SELECT * FROM MEDICAMENTOS WHERE ID > 0";
-
-  if (req.query.nome) {
-    sql += "and nome like ?";
-    filtro.push("%" + req.query.descricao + "%");
-  }
-
-  if (req.query.nomeComercial) {
-    sql += "and nomeComercial >= ?";
-    filtro.push(req.query.valor);
-    console.log(req.query.valor);
-  }
-
-  executeQuery(sql, filtro, function (err, result) {
-    if (err) {
-      return res.status(500).json(err);
+// Va a hacer a busca del medicamento por ID 
+app.get("/medicamentos/:id", (req, res) => {
+  const sql = "SELECT * FROM MEDICAMENTOS WHERE ID = ?";
+  executeQuery(sql, [req.params.id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    if (result.length === 0) {
+      res.status(404).json({ erro: " O medicamento não foi encontrado" }); //Mensaje se não encontra o código
     } else {
-      return res.status(200).json(result);
+      res.status(200).json(result[0]);
     }
   });
 });
 
-app.post("/medicamentos", function (req, res) {
-  console.log(req.body);
-  let sql =
-    "INSERT INTO MEDICAMENTOS(DESCRICAO, VALOR, IMAGEM) VALUES (?, ?, ?) RETURNING ID";
+// Inserindo os medicamentos 
+app.post("/medicamentos", (req, res) => {
+  const { id, nome, nome_comercial, dose } = req.body;
 
-  if (!req.body.id) {
-    executeQuery(
-      sql,
-      [req.body.nome, req.body.nomeComercial, req.body.dose],
-      function (err, result) {
-        if (err) {
-          return res.status(500).json(err);
-        } else {
-          return res.status(201).send("ok"); //json(result);
-        }
-      }
-    );
-  } else {
-    sql = "UPDATE MEDICAMENTOS SET NOME=?, nomeComercial=?, dose=? WHERE ID=?";
-    executeQuery(
-      sql,
-      [req.body.nome, req.body.nomeComercial, req.body.dose, req.body.id],
-      function (err, result) {
-        if (err) {
-          return res.status(500).json(err);
-        } else {
-          return res.status(201).send("ok"); //json(result);
-        }
-      }
-    );
+  if (!id || !nome || !nome_comercial || !dose) {
+    return res.status(400).json({ erro: "Precisa preencher todos os campos" });
   }
-});
 
-app.delete("/medicamentos/:id", function (req, res) {
-  console.log("Excluindo medicamento: " + req.params.id);
-  let sql = "DELETE FROM MEDICAMENTOS WHERE ID=?";
-  executeQuery(sql, [req.params.id], function (err, result) {
-    if (err) {
-      return res.status(500).json(err);
-    } else {
-      return res.status(200).send("ok");
-    }
+  const sql = "INSERT INTO MEDICAMENTOS (ID, NOME, NOME_COMERCIAL, DOSE) VALUES (?, ?, ?, ?)"; //populando o banco
+  executeQuery(sql, [id, nome, nome_comercial, dose], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.status(201).send("OK");
   });
 });
 
-//inicio do servidor
-let port = process.env.PORT || 3000;
+// Atualizando o medicamento
+app.put("/medicamentos/:id", (req, res) => {
+  const { nome, nome_comercial, dose } = req.body;
+  const id = req.params.id;
 
-app.listen(port, function () {
-  console.log("Servidor no ar... na porta : " + port);
+  const sql = "UPDATE MEDICAMENTOS SET NOME = ?, NOME_COMERCIAL = ?, DOSE = ? WHERE ID = ?"; //Fazendo a atualização no banco
+  executeQuery(sql, [nome, nome_comercial, dose, id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.status(200).send("OK");
+  });
 });
+
+// Excluindo medicamento
+app.delete("/medicamentos/:id", (req, res) => {
+  const sql = "DELETE FROM MEDICAMENTOS WHERE ID = ?"; //Excluindo do banco
+  executeQuery(sql, [req.params.id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.status(200).send("OK");
+  });
+});
+
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});
+
