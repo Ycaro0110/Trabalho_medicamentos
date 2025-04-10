@@ -1,21 +1,20 @@
-import {BASEURL} from "./consts.js";
+import { BASEURL } from "./consts.js";
 
-const BASEURL = "http://localhost:3000/";
 const inpIdMed = document.querySelector("#inpIdMed");
 const inpDescricaoMed = document.querySelector("#inpDescricaoMed");
 const inpValorMed = document.querySelector("#inpValorMed");
 const inpDoseMed = document.querySelector("#inpDoseMed");
 
-const btnIncluir = document.querySelector("#btnMedicamentoIncluir");
-const btnAlterar = document.querySelector("#btnMedicamentoAlterar");
-const btnExcluir = document.querySelector("#btnMedicamentoExcluir");
-const btnConferir = document.querySelector("#btnMedicamentoConferir");
-
 const ulErros = document.querySelector("#ulErros");
 
-btnIncluir.onclick = async () => {
+export async function incluirMedicamento() {
     ulErros.innerHTML = "";
     let erros = false;
+
+    if (!inpIdMed.value) {
+        ulErros.innerHTML += "<li>Informe o código (ID)</li>";
+        erros = true;
+    }
 
     if (!inpDescricaoMed.value) {
         ulErros.innerHTML += "<li>Informe o nome</li>";
@@ -35,30 +34,37 @@ btnIncluir.onclick = async () => {
     if (erros) return;
 
     const med = {
+        id: Number(inpIdMed.value),
         nome: inpDescricaoMed.value,
         nome_comercial: inpValorMed.value,
         dose: Number(inpDoseMed.value)
     };
 
-    const dados = JSON.stringify(med);
+    try {
+        const resp = await fetch(`${BASEURL}medicamentos`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(med)
+        });
 
-    const resp = await fetch(`${BASEURL}medicamentos`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: dados
-    });
+        const txt = await resp.text();
 
-    const txt = await resp.text();
-
-    if (txt.toUpperCase() === "OK") {
-        limparCampos();
-        carregaMedicamentos();
+        if (resp.ok && txt.toUpperCase() === "OK") {
+            alert("O medicamento foi incluido com sucesso");
+            limparCampos();
+            carregaMedicamentos();
+        } else {
+            alert("Erro: O medicamento não foi incluido." + txt);
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro: A conexão com o servidor não foi feita.");
     }
-};
+}
 
-btnAlterar.onclick = async () => {
+export async function alterarMedicamento() {
     ulErros.innerHTML = "";
 
     if (!inpIdMed.value) {
@@ -73,25 +79,31 @@ btnAlterar.onclick = async () => {
         dose: Number(inpDoseMed.value)
     };
 
-    const dados = JSON.stringify(med);
+    try {
+        const resp = await fetch(`${BASEURL}medicamentos/${med.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(med)
+        });
 
-    const resp = await fetch(`${BASEURL}medicamentos/${med.id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: dados
-    });
+        const txt = await resp.text();
 
-    const txt = await resp.text();
-
-    if (txt.toUpperCase() === "OK") {
-        limparCampos();
-        carregaMedicamentos();
+        if (resp.ok && txt.toUpperCase() === "OK") {
+            alert("O medicamento foi alterado com sucesso");
+            limparCampos();
+            carregaMedicamentos();
+        } else {
+            alert("Erro: Não foi possível alterar medicamento: " + txt);
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro: A conexão com o servidor não foi feita.");
     }
-};
+}
 
-btnExcluir.onclick = async () => {
+export async function excluirMedicamento() {
     ulErros.innerHTML = "";
 
     if (!inpIdMed.value) {
@@ -99,23 +111,31 @@ btnExcluir.onclick = async () => {
         return;
     }
 
-    if (!confirm("Deseja realmente excluir?")) return;
+    if (!confirm("Tem certeza que deseja excluir o medicamento?")) return;
 
     const id = Number(inpIdMed.value);
 
-    const resp = await fetch(`${BASEURL}medicamentos/${id}`, {
-        method: "DELETE"
-    });
+    try {
+        const resp = await fetch(`${BASEURL}medicamentos/${id}`, {
+            method: "DELETE"
+        });
 
-    const txt = await resp.text();
+        const txt = await resp.text();
 
-    if (txt.toUpperCase() === "OK") {
-        limparCampos();
-        carregaMedicamentos();
+        if (resp.ok && txt.toUpperCase() === "OK") {
+            alert("O medicamento foi excluído com sucesso");
+            limparCampos();
+            carregaMedicamentos();
+        } else {
+            alert("Erro: A conexão com o servidor não foi feita. " + txt);
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro: A conexão com o servidor não foi feita.");
     }
-};
+}
 
-btnConferir.onclick = async () => {
+export async function conferirDados() {
     ulErros.innerHTML = "";
 
     if (!inpIdMed.value) {
@@ -125,17 +145,28 @@ btnConferir.onclick = async () => {
 
     const id = Number(inpIdMed.value);
 
-    const resp = await fetch(`${BASEURL}medicamentos/${id}`);
-    const med = await resp.json();
+    try {
+        const resp = await fetch(`${BASEURL}medicamentos/${id}`);
 
-    if (med.id) {
-        inpDescricaoMed.value = med.nome;
-        inpValorMed.value = med.nome_comercial;
-        inpDoseMed.value = med.dose;
-    } else {
-        alert("Medicamento não encontrado.");
+        if (!resp.ok) {
+            alert("Erro: Código não encontrado.");
+            return;
+        }
+
+        const med = await resp.json();
+
+        if (med.id) {
+            inpDescricaoMed.value = med.nome;
+            inpValorMed.value = med.nome_comercial;
+            inpDoseMed.value = med.dose;
+        } else {
+            alert("O medicamento não foi encontrado.");
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro: A conexão com o servidor não foi feita.");
     }
-};
+}
 
 function limparCampos() {
     inpIdMed.value = "";
@@ -161,7 +192,14 @@ function carregaMedicamentos() {
                     </tr>
                 `;
             });
+        })
+        .catch(error => {
+            console.error("Erro ao carregar medicamentos:", error);
+            alert("Erro ao carregar os medicamentos.");
         });
 }
 
 carregaMedicamentos();
+
+
+

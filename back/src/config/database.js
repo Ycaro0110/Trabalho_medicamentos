@@ -4,7 +4,8 @@ const dbOptions = {
   host: "127.0.0.1",
   port: 3050,
   database:
-    "C:\\IFF\\Trabalho_hipermidiaBDD_a2\\back\\Banco\\FARMACIA.FDB",
+    "C:\\IFF\\trabalho_medicamentos\\back\\Banco\\FARMACIA.FDB",
+    //"C:\\IFF\\Trabalho_hipermidiaBDD_a2\\back\\Banco\\FARMACIA.FDB",
   user: "SYSDBA",
   password: "masterkey",
   lowercase_keys: true,
